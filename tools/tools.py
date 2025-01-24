@@ -9,7 +9,7 @@ o_path = os.path.abspath(os.path.join(local_path, ".."))  # 返回当前工作�
 sys.path.append(o_path)
 from tools.__config import *
 
-filter_list = ['temp', 'product', 'speed', 'uuid', 'gpu', 'driver']
+filter_list = ['temp', 'product', 'speed', 'uuid', 'gpu', 'driver', 'gpu_power_readings', 'clocks']
 
 
 def connect_influxdb():
@@ -30,13 +30,13 @@ def query_influxdb(client, sql):
 def parse_xml_to_json(xml):
     response = {}
     for child in list(xml):
-        flag = False
-        for filter in filter_list:
-            if filter in child.tag:
-                flag = True
-                break
-        if not flag:
-            continue
+        # flag = False
+        # for filter in filter_list:
+        #     if filter in child.tag:
+        #         flag = True
+        #         break
+        # if not flag:
+        #     continue
         if len(list(child)) > 0:
             if not response.get(child.tag):
                 response[child.tag] = []
@@ -44,13 +44,13 @@ def parse_xml_to_json(xml):
         elif child.text.strip() != 'N/A' and child.text.strip() != '':
             response[child.tag] = child.text.strip()
 
-        if type(response.get(child.tag)) is dict and len(response.get(child.tag)) == 0:
-            del response[child.tag]
-        if type(response.get(child.tag)) is list and len(response.get(child.tag)) == 0:
-            del response[child.tag]
-        if type(response.get(child.tag)) is list and len(response.get(child.tag)) == 1 and len(
-                response.get(child.tag)[0]) == 0:
-            del response[child.tag]
+        # if type(response.get(child.tag)) is dict and len(response.get(child.tag)) == 0:
+        #     del response[child.tag]
+        # if type(response.get(child.tag)) is list and len(response.get(child.tag)) == 0:
+        #     del response[child.tag]
+        # if type(response.get(child.tag)) is list and len(response.get(child.tag)) == 1 and len(
+        #         response.get(child.tag)[0]) == 0:
+        #     del response[child.tag]
     return response
 
 

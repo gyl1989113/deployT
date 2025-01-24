@@ -30,20 +30,35 @@ def gpu_data():
                      'cpu_frequency': '0'}]
 
     gpu_infos = list()
-    xml = ET.XML(result)
-    info = parse_xml_to_json(xml)
-    for gpu in info.get('gpu'):
+    # Parse the XML data
+    info = ET.fromstring(result)
+    for gpu in info.find('gpu'):
         gpu_info = {
             'gpu_status': 1,
-            'fan_speed': gpu.get('fan_speed'),
-            'temp': gpu.get('temperature')[0].get('gpu_temp'),
-            'frequency': gpu.get('clocks').get('graphics'),  # Get the graphics frequency
-            'power': gpu.get('power_readings').get('power_draw'),  # Get the power usage
-            'cpu_frequency': psutil.cpu_freq().current  # Get the current CPU frequency
+            'fan_speed': gpu.find('fan_speed').text,
+            'temp': gpu.find('temperature/gpu_temp').text,
+            'frequency': gpu.find('clocks/graphics_clock').text,  # Get the graphics frequency
+            'power': gpu.find('gpu_power_readings/power_draw').text,  # Get the power usage
         }
         print(gpu_info)
         gpu_infos.append(gpu_info)
     return gpu_infos
+
+
+# 基础指标
+def basic_info():
+    # cpu使用率
+    cpu_util_all = psutil.cpu_percent(interval=1, percpu=True)
+    cpu_utils = sum(cpu_util_all)/len(cpu_util_all)
+    # 内存使用率
+    mem = psutil.virtual_memory()
+    mem_utils = (mem.total-mem.free)/mem.total
+    # cpu 频率
+    cpu_freq = psutil.cpu_freq().current
+
+    basic_metrics = {'cpu_utils': cpu_utils, 'mem_utils': mem_utils, 'cpu_freq': cpu_freq}
+    # print(basic_metrics)
+    return basic_metrics
 
 
 gpu_data()
