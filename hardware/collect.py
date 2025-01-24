@@ -22,12 +22,10 @@ def gpu_data():
         # 显卡错误
         if "Unknown Error" in error_output or "failed" in error_output:
             print("{} :gpu failed,please check".format(socket.gethostname()))
-            return [{'gpu_status': 2, 'model': '', 'fan_speed': '0', 'temp': '0', 'frequency': '0', 'power': '0',
-                     'cpu_frequency': '0'}]
+            return [{'gpu_status': 2, 'fan_speed': '0', 'temp': '0', 'frequency': '0', 'power': '0'}]
         # 没有显卡
         if "not found" in error_output:
-            return [{'gpu_status': 0, 'model': '', 'fan_speed': '0', 'temp': '0', 'frequency': '0', 'power': '0',
-                     'cpu_frequency': '0'}]
+            return [{'gpu_status': 0, 'fan_speed': '0', 'temp': '0', 'frequency': '0', 'power': '0'}]
 
     gpu_infos = list()
     xml = ET.XML(result)
@@ -70,7 +68,6 @@ def run():
     max_fan_speed, max_gpu_temp = 0, 0
     for gpu in gpu_infos:
         gpu_metrics['gpu_status'] = gpu['gpu_status']
-        gpu_metrics['model'] = gpu['model']
         gpu_metrics['fan_speed'] = int(gpu['fan_speed'].replace(" %", ""))
         if gpu_metrics['fan_speed'] > max_fan_speed:
             max_fan_speed = gpu_metrics['fan_speed']
