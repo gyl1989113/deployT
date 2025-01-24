@@ -1,0 +1,10 @@
+version: '3.5'
+
+
+services:
+  backend-test:
+    container_name: backend-test
+    image: backend:master
+    ports:
+    - 9001:8080
+    restart: always
