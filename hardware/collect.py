@@ -35,10 +35,9 @@ def gpu_data():
             'gpu_status': 1,
             'fan_speed': gpu.get('fan_speed'),
             'temp': gpu.get('temperature')[0].get('gpu_temp'),
-            'frequency': gpu.get('clocks')[0].get('graphics'),  # Get the graphics frequency
+            'frequency': gpu.get('clocks')[0].get('graphics_clock'),  # Get the graphics frequency
             'power': gpu.get('gpu_power_readings')[0].get('power_draw'),  # Get the power usage
         }
-        print(gpu_info)
         gpu_infos.append(gpu_info)
     return gpu_infos
 
