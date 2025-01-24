@@ -62,10 +62,10 @@ def basic_info():
 def run():
     # client = connect_influxdb()
 
-    gpu_metrics = {'gpu_status': 0, 'fan_speed': 0, 'temp': 0, 'freq': 0, 'power': 0}
+    gpu_metrics = {'gpu_status': 0, 'fan_speed': 0, 'temp': 0, 'frequency': 0, 'power': 0}
     gpu_infos = gpu_data()
 
-    max_fan_speed, max_gpu_temp = 0, 0
+    max_fan_speed, max_gpu_temp, max_gpu_freq, max_gpu_power = 0, 0, 0, 0
     for gpu in gpu_infos:
         gpu_metrics['gpu_status'] = gpu['gpu_status']
         gpu_metrics['fan_speed'] = int(gpu['fan_speed'].replace(" %", ""))
@@ -74,12 +74,12 @@ def run():
         gpu_metrics['temp'] = int(re.findall(r"\d+", gpu['temp'])[0])
         if gpu_metrics['temp'] > max_gpu_temp:
             max_gpu_temp = gpu_metrics['temp']
-        gpu_metrics['freq'] = int(re.findall(r"\d+", gpu['freq'])[0])
-        if gpu_metrics['freq'] > max_gpu_temp:
-            max_gpu_temp = gpu_metrics['freq']
+        gpu_metrics['frequency'] = int(re.findall(r"\d+", gpu['frequency'])[0])
+        if gpu_metrics['frequency'] > max_gpu_temp:
+            max_gpu_freq = gpu_metrics['frequency']
         gpu_metrics['power'] = int(re.findall(r"\d+", gpu['power'])[0])
         if gpu_metrics['power'] > max_gpu_temp:
-            max_gpu_temp = gpu_metrics['power']
+            max_gpu_power = gpu_metrics['power']
 
     # 基础数据获取
     basic_metrics = basic_info()
