@@ -5,9 +5,8 @@ import time
 import socket
 import psutil
 from xml.etree import ElementTree as ET
-
 local_path = os.getcwd()
-o_path = os.path.abspath(os.path.join(local_path, "../../"))  # 返回当前工作目录
+o_path = os.path.abspath(os.path.join(local_path, "../"))  # 返回当前工作目录
 sys.path.append(o_path)
 from tools.tools import *
 from tools.send_alert import send_alert
