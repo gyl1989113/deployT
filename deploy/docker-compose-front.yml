@@ -4,7 +4,7 @@ version: '3.5'
 services:
   frontend-test:
     container_name: frontend-test
-    image: frontend:v1
+    image: frontend:${Tag}
     ports:
     - 9000:8080
     restart: always
