@@ -44,6 +44,18 @@ def gpu_data():
 
 # 基础指标
 def basic_info():
+    # 发行版本
+    release = os.popen('cat /etc/issue').read().strip()
+    # 内核
+    kernel = os.popen('uname -r').read().strip()
+    # 主机名
+    hostname = socket.gethostname()
+    # 显卡驱动版本
+    driver_version = os.popen('nvidia-smi -q | grep "Driver Version"').read().strip().split(': ')[1]
+    # 显卡型号
+    gpu_model = os.popen('nvidia-smi --query-gpu=name --format=csv,noheader').read().strip()
+    # CUDA Version
+    cuda_version = os.popen("nvidia-smi -x -q | grep cuda | sed 's/<[^>]*>//g' | tr -d '[:space:]'").read().strip()
     # cpu使用率
     cpu_util_all = psutil.cpu_percent(interval=1, percpu=True)
     cpu_utils = sum(cpu_util_all)/len(cpu_util_all)
@@ -53,7 +65,7 @@ def basic_info():
     # cpu 频率
     cpu_freq = psutil.cpu_freq().current
 
-    basic_metrics = {'cpu_utils': cpu_utils, 'mem_utils': mem_utils, 'cpu_freq': cpu_freq}
+    basic_metrics = {'hostname': hostname, 'release': release, 'kernel': kernel, 'driver_version': driver_version, 'gpu_model': gpu_model, 'cuda_version': cuda_version,  'cpu_utils': cpu_utils, 'mem_utils': mem_utils, 'cpu_freq': cpu_freq}
     # print(basic_metrics)
     return basic_metrics
 
