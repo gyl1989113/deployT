@@ -73,67 +73,70 @@ def basic_info():
     return basic_metrics
 
 
-def run():
+def collect_and_insert_data():
     client = connect_influxdb()
+    gpu_metrics = {'gpu_status': 0, 'fan_speed': 0, 'temp': 0, 'frequency': 0, 'power': 0}
+    gpu_infos = gpu_data()
+
+    max_fan_speed, max_gpu_temp, max_gpu_freq, max_gpu_power = 0, 0, 0, 0
+    for gpu in gpu_infos:
+        gpu_metrics['gpu_status'] = gpu['gpu_status']
+        gpu_metrics['fan_speed'] = int(gpu['fan_speed'].replace(" %", ""))
+        if gpu_metrics['fan_speed'] > max_fan_speed:
+            max_fan_speed = gpu_metrics['fan_speed']
+        gpu_metrics['temp'] = int(re.findall(r"\d+", gpu['temp'])[0])
+        if gpu_metrics['temp'] > max_gpu_temp:
+            max_gpu_temp = gpu_metrics['temp']
+        gpu_metrics['frequency'] = int(re.findall(r"\d+", gpu['frequency'])[0])
+        if gpu_metrics['frequency'] > max_gpu_temp:
+            max_gpu_freq = gpu_metrics['frequency']
+        gpu_metrics['power'] = int(re.findall(r"\d+", gpu['power'])[0])
+        if gpu_metrics['power'] > max_gpu_temp:
+            max_gpu_power = gpu_metrics['power']
+
+    # 基础数据获取
+    basic_metrics = basic_info()
+
+    complete_metrics = {**basic_metrics, **gpu_metrics}
+
+    json_body = [
+        {
+            "measurement": "hardware",
+            "tags": {
+                "timestamp": int(time.time()),
+                "hostname": socket.gethostname()
+            },
+            "fields": {
+                "host": socket.gethostname(),
+                "release": basic_metrics['release'],
+                "kernel": basic_metrics['kernel'],
+                "driver_version": basic_metrics['driver_version'],
+                "cpu_utils": basic_metrics['cpu_utils'],
+                "mem_utils": basic_metrics['mem_utils'],
+                "cpu_freq": basic_metrics['cpu_freq'],
+                "gpu_status": gpu_metrics['gpu_status'],
+                "cuda_version": basic_metrics['cuda_version'],
+                "gpu_model": basic_metrics['gpu_model'],
+                "gpu_fan": max_fan_speed,
+                "gpu_temp": max_gpu_temp,
+                "gpu_freq": max_gpu_freq,
+                "gpu_power": max_gpu_power,
+
+            }
+        }
+    ]
+    insert_influxdb(client, json_body)
+    # print(complete_metrics)
+
+
+def run():
 
     # 运行30分钟，每5分钟采集一次数据
     # 开始时间
     start_time = time.time()
     end_time = start_time + 1800  #  半小时后结束
     while time.time() < end_time:
-
-        gpu_metrics = {'gpu_status': 0, 'fan_speed': 0, 'temp': 0, 'frequency': 0, 'power': 0}
-        gpu_infos = gpu_data()
-
-        max_fan_speed, max_gpu_temp, max_gpu_freq, max_gpu_power = 0, 0, 0, 0
-        for gpu in gpu_infos:
-            gpu_metrics['gpu_status'] = gpu['gpu_status']
-            gpu_metrics['fan_speed'] = int(gpu['fan_speed'].replace(" %", ""))
-            if gpu_metrics['fan_speed'] > max_fan_speed:
-                max_fan_speed = gpu_metrics['fan_speed']
-            gpu_metrics['temp'] = int(re.findall(r"\d+", gpu['temp'])[0])
-            if gpu_metrics['temp'] > max_gpu_temp:
-                max_gpu_temp = gpu_metrics['temp']
-            gpu_metrics['frequency'] = int(re.findall(r"\d+", gpu['frequency'])[0])
-            if gpu_metrics['frequency'] > max_gpu_temp:
-                max_gpu_freq = gpu_metrics['frequency']
-            gpu_metrics['power'] = int(re.findall(r"\d+", gpu['power'])[0])
-            if gpu_metrics['power'] > max_gpu_temp:
-                max_gpu_power = gpu_metrics['power']
-
-        # 基础数据获取
-        basic_metrics = basic_info()
-
-        complete_metrics = {**basic_metrics, **gpu_metrics}
-
-        json_body = [
-            {
-                "measurement": "hardware",
-                "tags": {
-                    "timestamp": int(time.time()),
-                    "hostname": socket.gethostname()
-                },
-                "fields": {
-                    "host": socket.gethostname(),
-                    "release": basic_metrics['release'],
-                    "kernel": basic_metrics['kernel'],
-                    "driver_version": basic_metrics['driver_version'],
-                    "cpu_utils": basic_metrics['cpu_utils'],
-                    "mem_utils": basic_metrics['mem_utils'],
-                    "cpu_freq": basic_metrics['cpu_freq'],
-                    "gpu_status": gpu_metrics['gpu_status'],
-                    "cuda_version": basic_metrics['cuda_version'],
-                    "gpu_model": basic_metrics['gpu_model'],
-                    "gpu_fan": max_fan_speed,
-                    "gpu_temp": max_gpu_temp,
-                    "gpu_freq": max_gpu_freq,
-                    "gpu_power": max_gpu_power,
-
-                }
-            }
-        ]
-        insert_influxdb(client, json_body)
-        # print(complete_metrics)
+        collect_and_insert_data()
         # 等待 5 分钟
         time.sleep(300)
 
