@@ -44,7 +44,7 @@ def gpu_data():
 # 基础指标
 def basic_info():
     # 发行版本
-    release = os.popen('cat /etc/issue').read().strip()
+    release = os.popen('cat /etc/issue').read().strip().split('\n')[0]
     # 内核
     kernel = os.popen('uname -r').read().strip()
     # 主机名
