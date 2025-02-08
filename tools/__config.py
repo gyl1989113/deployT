@@ -36,4 +36,4 @@ INFLUX_USER = "monitor"
 # influxdb 密码
 INFLUX_PASSWORD = "qtum7886"
 # influxdb 数据库
-INFLUX_DATABASE = "collectd"
+INFLUX_DATABASE = "ceshi"

@@ -9,7 +9,6 @@ local_path = os.getcwd()
 o_path = os.path.abspath(os.path.join(local_path, "../"))  # 返回当前工作目录
 sys.path.append(o_path)
 from tools.tools import *
-from tools.send_alert import send_alert
 import subprocess
 
 
@@ -71,7 +70,7 @@ def basic_info():
 
 
 def run():
-    # client = connect_influxdb()
+    client = connect_influxdb()
 
     gpu_metrics = {'gpu_status': 0, 'fan_speed': 0, 'temp': 0, 'frequency': 0, 'power': 0}
     gpu_infos = gpu_data()
@@ -97,29 +96,34 @@ def run():
 
     complete_metrics = {**basic_metrics, **gpu_metrics}
 
-    # json_body = [
-    #     {
-    #         "measurement": "hardware",
-    #         "tags": {
-    #             "timestamp": int(time.time()),
-    #             "hostname": socket.gethostname()
-    #         },
-    #         "fields": {
-    #             "host": socket.gethostname(),
-    #             "gpu_status": gpu_metrics['gpu_status'],
-    #             "gpu_model": gpu_metrics['model'],
-    #             "gpu_fan": gpu_metrics['fan_speed'],
-    #             "gpu_temp": gpu_metrics['temp'],
-    #             "cpu_utils": basic_metrics['cpu_utils'],
-    #             "mem_utils": basic_metrics['mem_utils'],
-    #             "df_utils_root": basic_metrics['df_utils_root'],
-    #             "df_utils_work": basic_metrics['df_utils_work'],
-    #             "net_utils": basic_metrics['net_utils'],
-    #         }
-    #     }
-    # ]
-    # insert_influxdb(client, json_body)
-    print(complete_metrics)
+    json_body = [
+        {
+            "measurement": "hardware",
+            "tags": {
+                "timestamp": int(time.time()),
+                "hostname": socket.gethostname()
+            },
+            "fields": {
+                "host": socket.gethostname(),
+                "release": basic_metrics['release'],
+                "kernel": basic_metrics['kernel'],
+                "driver_version": basic_metrics['driver_version'],
+                "cpu_utils": basic_metrics['cpu_utils'],
+                "mem_utils": basic_metrics['mem_utils'],
+                "cpu_freq": basic_metrics['cpu_freq'],
+                "gpu_status": gpu_metrics['gpu_status'],
+                "cuda_version": basic_metrics['cuda_version'],
+                "gpu_model": basic_metrics['gpu_model'],
+                "gpu_fan": max_fan_speed,
+                "gpu_temp": max_gpu_temp,
+                "gpu_freq": max_gpu_freq,
+                "gpu_power": max_gpu_power,
+
+            }
+        }
+    ]
+    insert_influxdb(client, json_body)
+    # print(complete_metrics)
 
 
 if __name__ == '__main__':
