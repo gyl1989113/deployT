@@ -1,0 +1,10 @@
+version: '3.5'
+
+
+services:
+  cuda-test:
+    container_name: cuda-test
+    image: cuda-test:${Tag}
+    ports:
+    - 9002:8080
+    restart: always
