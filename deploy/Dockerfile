@@ -63,4 +63,4 @@ RUN git clone --branch v0.13.0 https://github.com/jupp0r/prometheus-cpp.git /pro
     && make -j$(nproc) \
     && make install
 
-entrypoint ["cd rust && cargo bench"]
+ENTRYPOINT ["/root/run_bench.sh"]
