@@ -180,7 +180,7 @@ def run_gather_variable_data():
     while time.time() < end_time:
         variable_data.append(get_variable_info())
         # 等待 5 分钟
-        time.sleep(300)
+        time.sleep(60)
 
     # 保存数据
     return variable_data
