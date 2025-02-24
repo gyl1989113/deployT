@@ -1,17 +1,42 @@
 import os
 import sys
 import glob
-local_path = os.getcwd()
-o_path = os.path.abspath(os.path.join(local_path, "../"))  # 返回当前工作目录
-sys.path.append(o_path)
-from tools.tools import *
+from influxdb import InfluxDBClient
+
+INFLUX_HOST = "172.18.65.10"
+# influxdb 端口(int)
+# INFLUX_PORT = 12003
+INFLUX_PORT = 8086
+# influxdb 用户名
+INFLUX_USER = "collect"
+# influxdb 密码
+INFLUX_PASSWORD = "collect@123"
+# influxdb 数据库
+INFLUX_DATABASE = "gpu_test"
 
 
+def connect_influxdb():
+    # client = InfluxDBClient(host='69.194.1.66', port=12003, username='monitor', password='qtum7886',database='collectd', timeout=5)
+    client = InfluxDBClient(host=INFLUX_HOST, port=INFLUX_PORT, username=INFLUX_USER, password=INFLUX_PASSWORD, database=INFLUX_DATABASE, timeout=5)
+    return client
+
+
+def insert_influxdb(client, json_body):
+    client.write_points(json_body)
+
+
+def query_influxdb(client, sql):
+    data = client.query(sql)
+    return data
+
+
+# Connect to InfluxDB
 client = connect_influxdb()
 
 
 # Function to read and insert data from files
 def insert_data_from_files():
+
     # Find all gpu_metrics files
     files = glob.glob("gpu_metrics*.txt")
 
@@ -56,8 +81,8 @@ def insert_data_from_files():
                             "temp": temp,
                             "clock_speed": clock_speed,
                             "power": power,
-                        },
-                        "time": int(timestamp)
+                            "time": int(timestamp),
+                        }
                     }
                 ]
                 insert_influxdb(client, json_body)
