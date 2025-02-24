@@ -1,5 +1,8 @@
 pipeline {
     agent none  // No global agent; specify per stage
+    triggers {
+           githubPush()
+    }
     parameters {
         gitParameter name: 'Tags',
                      type: 'PT_BRANCH_TAG',
@@ -14,6 +17,7 @@ pipeline {
             agent { label 'master' }  // Specify the agent for this stage
             steps {
                 checkout([$class: 'GitSCM',
+//                           branches: [[name: "refs/tags/*"]],
                           branches: [[name: "${params.Tags}"]],
                           userRemoteConfigs: [[
                             url: 'https://github.com/gyl1989113/goBackendTest.git',

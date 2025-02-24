@@ -26,14 +26,13 @@ REDIS_PASSWORD = "pool57836"
 
 "influxdb 线上配置"
 # influxdb 地址(str)
-# INFLUX_HOST = "69.194.1.66"
 INFLUX_HOST = "47.243.226.166"
 # influxdb 端口(int)
 # INFLUX_PORT = 12003
-INFLUX_PORT = 56808
+INFLUX_PORT = 8086
 # influxdb 用户名
-INFLUX_USER = "monitor"
+INFLUX_USER = "collect"
 # influxdb 密码
-INFLUX_PASSWORD = "qtum7886"
+INFLUX_PASSWORD = "collect@123"
 # influxdb 数据库
-INFLUX_DATABASE = "ceshi"
+INFLUX_DATABASE = "gpu_test"
