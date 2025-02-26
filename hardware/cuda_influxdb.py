@@ -1,12 +1,30 @@
 import os
 import sys
 import glob
-local_path = os.getcwd()
-o_path = os.path.abspath(os.path.join(local_path, "../"))  # 返回当前工作目录
-sys.path.append(o_path)
-from tools.tools import *
+from influxdb import InfluxDBClient
+
+INFLUX_HOST = "172.18.65.10"
+INFLUX_PORT = 8086
+INFLUX_USER = "collect"
+INFLUX_PASSWORD = "collect@123"
+INFLUX_DATABASE = "gpu_test"
 
 
+def connect_influxdb():
+    client = InfluxDBClient(host=INFLUX_HOST, port=INFLUX_PORT, username=INFLUX_USER, password=INFLUX_PASSWORD, database=INFLUX_DATABASE, timeout=5)
+    return client
+
+
+def insert_influxdb(client, json_body):
+    client.write_points(json_body)
+
+
+def query_influxdb(client, sql):
+    data = client.query(sql)
+    return data
+
+
+# Connect to InfluxDB
 client = connect_influxdb()
 
 
@@ -34,20 +52,9 @@ def insert_data_from_files():
                 power = float(field_parts[2].split('=')[1])
 
                 # Create a point and write to InfluxDB
-                # point = Point("cuda_result") \
-                #     .tag("host", host) \
-                #     .tag("gpu", gpu) \
-                #     .field("temp", temp) \
-                #     .field("clock_speed", clock_speed) \
-                #     .field("power", power) \
-                #     .time(int(timestamp))
-                #
-                # write_api.write(bucket=bucket, org=org, record=point)
-                # print(f"Inserted data from {file}: {line.strip()}")
-
                 json_body = [
                     {
-                        "measurement": "hardware",
+                        "measurement": "cuda_result",
                         "tags": {
                             "gpu_id": gpu,
                             "host": host,
@@ -57,7 +64,7 @@ def insert_data_from_files():
                             "clock_speed": clock_speed,
                             "power": power,
                         },
-                        "time": int(timestamp)
+                        "time": int(timestamp)  # Set the timestamp here
                     }
                 ]
                 insert_influxdb(client, json_body)
