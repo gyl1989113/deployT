@@ -24,6 +24,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libcurl4-openssl-dev \
     zlib1g-dev \
     libssl-dev \
+    nvidia-utils-525 \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # 安装 Nsight Systems 工具（确保与 CUDA 版本兼容）
@@ -65,5 +66,8 @@ RUN git clone --branch v0.13.0 https://github.com/jupp0r/prometheus-cpp.git /pro
     && cmake .. \
     && make -j$(nproc) \
     && make install
+
+# 设置 NVML 库的路径
+ENV LD_LIBRARY_PATH="/usr/local/cuda/lib64:/usr/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}"
 
 ENTRYPOINT ["/root/run_bench.sh"]
