@@ -44,7 +44,7 @@ pipeline {
                             "task1": {
                                 sh 'cd deploy/hardware && rm -f task1_completed* && rm -f gpu_metrics*.txt'
                                 sh 'cd rust&& cargo bench|grep -vi "Warning" > test_result'
-                                //sh "touch task1_completed_${currentTime}"
+//                                 sh 'sleep 60 && echo "hello" > test_result'
                                 sh "cd deploy/hardware && touch task1_completed"
                             },
                             "task2": {
@@ -58,7 +58,7 @@ pipeline {
                             echo "文件 ${generatedFile} 已成功生成。"
                             // 传递 Jenkins 作业名称和构建编号作为参数
                             def jobNameWithBuildNumber = "${env.JOB_NAME}_${env.BUILD_NUMBER}"
-                            sh "cd deploy/hardware && python3 cuda_influxdb.py ${jobNameWithBuildNumber}"
+                            sh "cd deploy/hardware && pip3 install -r requirements.txt && python3 cuda_influxdb.py ${jobNameWithBuildNumber}"
                         } else {
                             error "文件 ${generatedFile} 未生成，构建失败。"
                         }
@@ -67,32 +67,5 @@ pipeline {
             }
         }
     }
-    post {
-        success {
-            node("${params.NODE_LABEL}") {
-                script {    
-                    def testResult
-                    try {
-                        testResult = readFile('rust/test_result')
-                    } catch (FileNotFoundException e) {
-                        testResult = "Test result file 'rust/test.txt' not found."
-                    }
-                    emailext(
-                        subject: '${ENV, var="JOB_NAME"} - Build # ${BUILD_NUMBER} - SUCCESS',
-                        body: """
-                        <p>Build Status: SUCCESS</p>
-                        <p>Build Number: ${BUILD_NUMBER}</p>
-                        <p>Build URL: <a href="${BUILD_URL}">${BUILD_URL}</a></p>
-                        <p>Test Results:</p>
-                        <pre>${testResult}</pre>
-                        """,
-                        to: 'wangmao2009@sina.com', '1476642362@qq.com',
-                        replyTo: '229681868@qq.com',
-                        mimeType: 'text/html'
-                    )
-                    echo 'c and Python script executed successfully.check grafana'
-                }
-            }
-        }
-    }
+
 }
