@@ -19,7 +19,6 @@ pipeline {
             }
             steps {
                 script {
-                    sh 'rm -rf task1_completed*'
                     docker.image('cuda:1.0').inside('--user root -v /etc/localtime:/etc/localtime:ro --privileged --gpus all') {
                         // 提取到外面统一处理步骤
                         checkout([
@@ -41,9 +40,9 @@ pipeline {
                             extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'deploy']]
                         ])
 
-
                         parallel (
                             "task1": {
+                                sh 'cd deploy/hardware && rm -f task1_completed* && rm -f gpu_metrics*.txt'
                                 sh 'cd rust&& cargo bench|grep -vi "Warning" > test_result'
                                 //sh "touch task1_completed_${currentTime}"
                                 sh "cd deploy/hardware && touch task1_completed"
@@ -54,10 +53,12 @@ pipeline {
                             }
                         )
 
-                        def generatedFile = 'gpu_metrics0.txt'
+                        def generatedFile = 'deploy/hardware/gpu_metrics0.txt'
                         if (fileExists(generatedFile)) {
                             echo "文件 ${generatedFile} 已成功生成。"
-                            sh 'cd deploy/hardware && python3 cuda_influxdb.py'
+                            // 传递 Jenkins 作业名称和构建编号作为参数
+                            def jobNameWithBuildNumber = "${env.JOB_NAME}_${env.BUILD_NUMBER}"
+                            sh "cd deploy/hardware && python3 cuda_influxdb.py ${jobNameWithBuildNumber}"
                         } else {
                             error "文件 ${generatedFile} 未生成，构建失败。"
                         }

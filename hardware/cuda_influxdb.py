@@ -8,6 +8,10 @@ INFLUX_PORT = 8086
 INFLUX_USER = "collect"
 INFLUX_PASSWORD = "collect@123"
 INFLUX_DATABASE = "gpu_test"
+MEASUREMENT = "$1"
+if "$1" == "":
+    print("Please provide a measurement name as the first argument.")
+    sys.exit(1)
 
 
 def connect_influxdb():
@@ -54,7 +58,7 @@ def insert_data_from_files():
                 # Create a point and write to InfluxDB
                 json_body = [
                     {
-                        "measurement": "cuda_result",
+                        "measurement": MEASUREMENT,
                         "tags": {
                             "gpu_id": gpu,
                             "host": host,
