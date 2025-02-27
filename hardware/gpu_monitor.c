@@ -9,8 +9,8 @@
 
 #define SAMPLE_INTERVAL_MS 10    // Sample data every 10 milliseconds
 #define SAMPLES_PER_SECOND (1000 / SAMPLE_INTERVAL_MS)  // Samples per second
-#define INITIAL_BUFFER_SIZE (SAMPLES_PER_SECOND * 300)  // Initial buffer size for 5 minutes
-#define BUFFER_GROWTH_FACTOR 2   // Factor to grow buffer when needed
+#define MAX_SAMPLES (SAMPLES_PER_SECOND * 3600)  // Maximum samples for 1 hour
+#define CHECK_FILE_INTERVAL 100  // Check file every 100 samples
 
 // Structure for each metric record
 typedef struct {
@@ -27,7 +27,6 @@ typedef struct {
     char hostname[256];
     MetricRecord* buffer;    // Pointer to this GPU's data buffer
     int samples_collected;   // Number of samples actually collected
-    size_t buffer_capacity;  // Current buffer capacity
 } ThreadArgs;
 
 // Function to get the current time in nanoseconds
@@ -59,26 +58,19 @@ void* monitor_gpu(void* arg) {
     ThreadArgs* args = (ThreadArgs*)arg;
     nvmlReturn_t result;
     args->samples_collected = 0;
-    args->buffer_capacity = INITIAL_BUFFER_SIZE;
+    int check_counter = 0;
     
     long long start_time = current_time_ns();
     long long next_sample_time = start_time;
     
     // Collect samples until task1_completed file is found
-    while (!file_exists("task1_completed")) {
-        // Check if buffer needs to grow
-        if (args->samples_collected >= args->buffer_capacity) {
-            size_t new_capacity = args->buffer_capacity * BUFFER_GROWTH_FACTOR;
-            MetricRecord* new_buffer = (MetricRecord*)realloc(args->buffer, 
-                new_capacity * sizeof(MetricRecord));
-            
-            if (new_buffer == NULL) {
-                printf("Failed to grow buffer for GPU %u\n", args->gpu_index);
+    while (args->samples_collected < MAX_SAMPLES) {
+        // Check for completion file periodically
+        if (++check_counter >= CHECK_FILE_INTERVAL) {
+            if (file_exists("task1_completed")) {
                 break;
             }
-            
-            args->buffer = new_buffer;
-            args->buffer_capacity = new_capacity;
+            check_counter = 0;
         }
 
         MetricRecord* record = &args->buffer[args->samples_collected];
@@ -123,7 +115,7 @@ int main() {
     char hostname[256];
     pthread_t* threads;
     ThreadArgs* thread_args;
-    MetricRecord** gpu_buffers;  // Buffers for storing data from all GPUs
+    MetricRecord** gpu_buffers;
 
     // Get the hostname
     if (gethostname(hostname, sizeof(hostname)) != 0) {
@@ -151,9 +143,14 @@ int main() {
     thread_args = (ThreadArgs*)malloc(device_count * sizeof(ThreadArgs));
     gpu_buffers = (MetricRecord**)malloc(device_count * sizeof(MetricRecord*));
 
-    // Allocate initial data buffer for each GPU
+    if (!threads || !thread_args || !gpu_buffers) {
+        printf("Failed to allocate memory for control structures\n");
+        return 1;
+    }
+
+    // Allocate fixed-size buffer for each GPU
     for (unsigned int i = 0; i < device_count; i++) {
-        gpu_buffers[i] = (MetricRecord*)malloc(INITIAL_BUFFER_SIZE * sizeof(MetricRecord));
+        gpu_buffers[i] = (MetricRecord*)malloc(MAX_SAMPLES * sizeof(MetricRecord));
         if (gpu_buffers[i] == NULL) {
             printf("Failed to allocate memory for GPU %u\n", i);
             return 1;

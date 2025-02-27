@@ -3,12 +3,6 @@ FROM nvidia/cuda:12.6.0-devel-ubuntu20.04
 
 WORKDIR /root
 
-# 将所有代码复制到容器中
-COPY . /root/
-
-# 确保脚本文件有执行权限
-RUN chmod +x /root/run_bench.sh
-
 # 设置非交互模式，防止安装时出现交互式提示
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -70,4 +64,4 @@ RUN git clone --branch v0.13.0 https://github.com/jupp0r/prometheus-cpp.git /pro
 # 设置 NVML 库的路径
 ENV LD_LIBRARY_PATH="/usr/local/cuda/lib64:/usr/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}"
 
-ENTRYPOINT ["/root/run_bench.sh"]
+RUN mkdir /root/.ssh/
