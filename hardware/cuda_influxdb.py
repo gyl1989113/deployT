@@ -61,10 +61,10 @@ def insert_data_from_files():
                     {
                         "measurement": MEASUREMENT,
                         "tags": {
-                            "gpu_id": gpu,
                             "host": host,
                         },
                         "fields": {
+                            "gpu_id": gpu,
                             "temp": temp,
                             "clock_speed": clock_speed,
                             "power": power,
