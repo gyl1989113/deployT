@@ -31,12 +31,14 @@ def query_influxdb(client, sql):
     return data
 
 
-# Function to read and insert data from files
 def insert_data_from_files():
     # Connect to InfluxDB
     client = connect_influxdb()
     # Find all gpu_metrics files
     files = glob.glob("gpu_metrics*.txt")
+
+    # Prepare a list to hold multiple points for batch insertion
+    json_body = []
 
     for file in files:
         with open(file, 'r') as f:
@@ -56,23 +58,29 @@ def insert_data_from_files():
                 clock_speed = float(field_parts[1].split('=')[1])
                 power = float(field_parts[2].split('=')[1])
 
-                # Create a point and write to InfluxDB
-                json_body = [
-                    {
-                        "measurement": MEASUREMENT,
-                        "tags": {
-                            "host": host,
-                            "gpu_id": gpu,
-                        },
-                        "fields": {
-                            "temp": temp,
-                            "clock_speed": clock_speed,
-                            "power": power,
-                        },
-                        "time": int(timestamp)  # Set the timestamp here
-                    }
-                ]
-                insert_influxdb(client, json_body)
+                # Create a point and add to the json_body list
+                json_body.append({
+                    "measurement": MEASUREMENT,
+                    "tags": {
+                        "host": host,
+                        "gpu_id": gpu,
+                    },
+                    "fields": {
+                        "temp": temp,
+                        "clock_speed": clock_speed,
+                        "power": power,
+                    },
+                    "time": int(timestamp)  # Set the timestamp here
+                })
+
+                # Insert data in batches
+                if len(json_body) >= 5000:  # Adjust batch size as needed
+                    insert_influxdb(client, json_body)
+                    json_body = []  # Clear the list after insertion
+
+    # Insert any remaining points
+    if json_body:
+        insert_influxdb(client, json_body)
 
     # Close the client
     client.close()
