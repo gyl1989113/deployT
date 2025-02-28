@@ -19,7 +19,7 @@ pipeline {
             }
             steps {
                 script {
-                    docker.image('cuda:1.0').inside('--user root -v /etc/localtime:/etc/localtime:ro --privileged --gpus all') {
+                    docker.image('cuda:1.0').inside('--user root -e HOST_HOSTNAME=$(hostname) -v /etc/localtime:/etc/localtime:ro --privileged --gpus all') {
                         // 提取到外面统一处理步骤
                         checkout([
                             $class: 'GitSCM', 
