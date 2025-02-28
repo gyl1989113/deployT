@@ -117,9 +117,13 @@ int main() {
     ThreadArgs* thread_args;
     MetricRecord** gpu_buffers;
 
-    // Get the hostname
-    if (gethostname(hostname, sizeof(hostname)) != 0) {
-        perror("Failed to get hostname");
+    // Get the hostname from the environment variable HOST_HOSTNAME
+    const char* env_hostname = getenv("HOST_HOSTNAME");
+    if (env_hostname != NULL) {
+        strncpy(hostname, env_hostname, sizeof(hostname) - 1);
+        hostname[sizeof(hostname) - 1] = '\0'; // Ensure null-termination
+    } else {
+        fprintf(stderr, "Environment variable HOST_HOSTNAME not set\n");
         return 1;
     }
 
