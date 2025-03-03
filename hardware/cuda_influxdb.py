@@ -1,7 +1,6 @@
 import json
 import os
 import re
-import socket
 import sys
 import glob
 from influxdb import InfluxDBClient
@@ -138,7 +137,7 @@ def get_basic_info():
     # 内核
     kernel = os.popen('uname -r').read().strip()
     # 主机名
-    hostname = socket.gethostname()
+    hostname = os.getenv('HOST_HOSTNAME',  'default_hostname')
     # 显卡驱动版本
     driver_version = os.popen('nvidia-smi -q | grep "Driver Version"').read().strip().split(': ')[1]
     # 显卡型号
